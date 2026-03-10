@@ -1,30 +1,58 @@
+// keyboard.js
 (function(){
 
 const keyMap = {
-  "1": "C4",
-  "2": "D4",
-  "3": "E4",
-  "4": "F4",
-  "5": "G4",
-  "6": "A4",
-  "7": "B4",
+  "1": "C",
+  "2": "D",
+  "3": "E",
+  "4": "F",
+  "5": "G",
+  "6": "A",
+  "7": "B",
 
-  "!": "C#4",
-  "@": "D#4",
-  "#": "F#4",
-  "$": "G#4",
-  "%": "A#4"
+  "!": "C#",
+  "@": "D#",
+  "#": "F#",
+  "$": "G#",
+  "%": "A#"
 };
+
+let currentOctave = 4;
 
 const pressedKeys = new Set();
 
 document.addEventListener("keydown", function(e){
 
-  const note = keyMap[e.key];
-  if(!note) return;
+  // ----- OCTAVE SHIFT -----
 
-  // prevent duplicate firing
+  if(e.key === "ArrowLeft"){
+    e.preventDefault();
+    currentOctave = Math.max(0, currentOctave - 1);
+
+    const btn = document.getElementById("scroll-left-octave");
+    if(btn) btn.click();
+
+    return;
+  }
+
+  if(e.key === "ArrowRight"){
+    e.preventDefault();
+    currentOctave = Math.min(8, currentOctave + 1);
+
+    const btn = document.getElementById("scroll-right-octave");
+    if(btn) btn.click();
+
+    return;
+  }
+
+  // ----- NOTE PLAY -----
+
+  const pitch = keyMap[e.key];
+  if(!pitch) return;
+
   if(pressedKeys.has(e.key)) return;
+
+  const note = pitch + currentOctave;
 
   pressedKeys.add(e.key);
 
@@ -35,8 +63,10 @@ document.addEventListener("keydown", function(e){
 
 document.addEventListener("keyup", function(e){
 
-  const note = keyMap[e.key];
-  if(!note) return;
+  const pitch = keyMap[e.key];
+  if(!pitch) return;
+
+  const note = pitch + currentOctave;
 
   pressedKeys.delete(e.key);
 
@@ -47,8 +77,9 @@ document.addEventListener("keyup", function(e){
 window.addEventListener("blur", function(){
 
   pressedKeys.forEach(key=>{
-    const note = keyMap[key];
-    if(note){
+    const pitch = keyMap[key];
+    if(pitch){
+      const note = pitch + currentOctave;
       releasePianoKey(note);
     }
   });
