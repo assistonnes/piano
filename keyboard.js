@@ -23,34 +23,47 @@ const pressedKeys = new Set();
 
 document.addEventListener("keydown", function(e){
 
-  // ----- OCTAVE SHIFT -----
+  // ----- OCTAVE SHIFT LEFT -----
 
   if(e.key === "ArrowLeft"){
+
     e.preventDefault();
-    currentOctave = Math.max(0, currentOctave - 1);
 
-    if(window.piano){
+    if(!window.piano) return;
 
-  const wrapper = window.piano.pianoWrapper;
-  const keyWidth = window.piano.getKeyWidth();
+    const wrapper = window.piano.pianoWrapper;
+    const keyWidth = window.piano.getKeyWidth();
 
-  wrapper.scrollLeft -= keyWidth * 7; // left
-}
+    const newScroll = wrapper.scrollLeft - keyWidth * 7;
+
+    // stop if already at edge
+    if(newScroll < 0) return;
+
+    wrapper.scrollLeft = newScroll;
+    currentOctave--;
 
     return;
   }
 
+  // ----- OCTAVE SHIFT RIGHT -----
+
   if(e.key === "ArrowRight"){
+
     e.preventDefault();
-    currentOctave = Math.min(8, currentOctave + 1);
 
-    if(window.piano){
+    if(!window.piano) return;
 
-  const wrapper = window.piano.pianoWrapper;
-  const keyWidth = window.piano.getKeyWidth();
+    const wrapper = window.piano.pianoWrapper;
+    const keyWidth = window.piano.getKeyWidth();
 
-  wrapper.scrollLeft += keyWidth * 7; // right
-}
+    const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+    const newScroll = wrapper.scrollLeft + keyWidth * 7;
+
+    // stop if already at edge
+    if(newScroll > maxScroll) return;
+
+    wrapper.scrollLeft = newScroll;
+    currentOctave++;
 
     return;
   }
