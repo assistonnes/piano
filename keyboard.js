@@ -29,8 +29,13 @@ document.addEventListener("keydown", function(e){
     e.preventDefault();
     currentOctave = Math.max(0, currentOctave - 1);
 
-    const btn = document.getElementById("scroll-left-octave");
-    if(btn) btn.click();
+    if(window.piano){
+
+  const wrapper = window.piano.pianoWrapper;
+  const keyWidth = window.piano.getKeyWidth();
+
+  wrapper.scrollLeft -= keyWidth * 7; // left
+}
 
     return;
   }
@@ -39,8 +44,13 @@ document.addEventListener("keydown", function(e){
     e.preventDefault();
     currentOctave = Math.min(8, currentOctave + 1);
 
-    const btn = document.getElementById("scroll-right-octave");
-    if(btn) btn.click();
+    if(window.piano){
+
+  const wrapper = window.piano.pianoWrapper;
+  const keyWidth = window.piano.getKeyWidth();
+
+  wrapper.scrollLeft += keyWidth * 7; // right
+}
 
     return;
   }
