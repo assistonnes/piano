@@ -1,3 +1,4 @@
+//ruler.js
 (function () {
 
   if (!window.piano) {
@@ -149,6 +150,20 @@ window.rulerSetScale = function(scaleName){
   renderMeasurementTape();
 };
 
+function normalizeKey(key){
+
+  const enharmonic = {
+    "Bb":"A#",
+    "Db":"C#",
+    "Gb":"F#",
+    "Eb":"D#",
+    "Ab":"G#",
+    "Cb":"B"
+  };
+
+  return enharmonic[key] || key;
+}
+
   function pitchClass(note) {
     return note.replace(/[0-9]/g, "");
   }
@@ -288,6 +303,60 @@ function positionMeasurementTape() {
     (-scrollLeft + tapeUserOffset * SEMITONE_UNIT) + "px";
 }
 
+function setRulerRoot(newRoot) {
+  rulerRoot = normalizeKey(newRoot);
+
+  const keyOrder = window.piano.keyOrder;
+  const rootIndex = keyOrder.indexOf(rulerRoot + "4");
+  const c4Index = keyOrder.indexOf("C4");
+
+  //tapeUserOffset = rootIndex - c4Index + visualOffset;
+  //tapeUserOffset = startOffset + dx / getSemitoneUnit();
+  renderMeasurementTape();
+}
+
+let rulerRootOctave = 4; // default octave for ruler 0-line
+
+function setRulerRootViaSubscribe(newKey) {
+  newKey = normalizeKey(newKey); // ← ADD THIS
+
+  const keyOrder = window.piano.keyOrder;
+  const SEMITONE_UNIT = getSemitoneUnit();
+  const cMid = window.piano.getCMidpoint();
+  const c4Index = keyOrder.indexOf("C4");
+
+  let targetNote = `${newKey}${rulerRootOctave}`;
+
+  if (!keyOrder.includes(targetNote)) {
+    const matches = keyOrder.filter(k => pitchClass(k) === newKey);
+    if (!matches.length) return;
+    let bestKey = matches[0];
+    let minDist = Infinity;
+    const currentX = cMid + tapeUserOffset * SEMITONE_UNIT;
+    matches.forEach(k => {
+      const i = keyOrder.indexOf(k);
+      const x = (i - c4Index) * SEMITONE_UNIT + cMid;
+      const dist = Math.abs(x - currentX);
+      if (dist < minDist) {
+        minDist = dist;
+        bestKey = k;
+      }
+    });
+    targetNote = bestKey;
+    rulerRootOctave = parseInt(targetNote.replace(/[^\d]/g,""));
+  }
+
+  const startOffset = tapeUserOffset;
+  const currentX = cMid + startOffset * SEMITONE_UNIT;
+  const targetIndex = keyOrder.indexOf(targetNote);
+  const targetX = (targetIndex - c4Index) * SEMITONE_UNIT + cMid;
+  const dx = targetX - currentX;
+  tapeUserOffset = startOffset + dx / SEMITONE_UNIT + visualOffset;
+
+  rulerRoot = pitchClass(targetNote);
+  positionMeasurementTape();
+}
+
   // ===== Drag Logic =====
   let dragging = false;
   let startX = 0;
@@ -323,6 +392,7 @@ function positionMeasurementTape() {
 
     tapeUserOffset = tonicIndex - c4Index + visualOffset; // ← apply visual tweak
     rulerRoot = pitchClass(nearestKey);
+window.__KEY_STATE__.setKey(rulerRoot, "ruler");
     positionMeasurementTape();
 });
   
@@ -365,14 +435,26 @@ document.addEventListener("touchend", e => {
 
     tapeUserOffset = tonicIndex - c4Index + visualOffset; // ← apply visual tweak
     rulerRoot = pitchClass(nearestKey);
+window.__KEY_STATE__.setKey(rulerRoot, "ruler");
     positionMeasurementTape();
 });
 
   // ===== Subscribe to piano =====
-  window.piano.onLayoutChange(() => {
+// ===== Subscribe to piano =====
+window.piano.onLayoutChange(() => {
   renderMeasurementTape();
 });
-  // initial render
-  renderMeasurementTape();
+
+// ===== Subscribe to central key state =====
+window.__KEY_STATE__.subscribe((newKey, source) => {
+  if (source === "ruler") return;
+  setRulerRootViaSubscribe(newKey);
+});
+
+// initial render
+renderMeasurementTape();
+  
+  
 
 })();
+
