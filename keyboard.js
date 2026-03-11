@@ -1,33 +1,56 @@
 // keyboard.js
 (function(){
 
-const keyMap = {
-  "1": "C",
-  "2": "D",
-  "3": "E",
-  "4": "F",
-  "5": "G",
-  "6": "A",
-  "7": "B",
+const MAJOR_SCALE = [0,2,4,5,7,9,11];
 
-  "!": "C#",
-  "@": "D#",
-  "#": "F#",
-  "$": "G#",
-  "%": "A#"
-};
+const NOTES = [
+"C","C#","D","D#","E","F",
+"F#","G","G#","A","A#","B"
+];
+
+let currentKey = "C";
+let scaleNotes = [];
 
 let currentOctave = 4;
 
 const pressedKeys = new Set();
 
+const keyMap = {
+  "1":0,"2":1,"3":2,"4":3,"5":4,"6":5,"7":6,
+  "!":0,"@":1,"#":3,"$":4,"%":5
+};
+
+// Build scale for current key
+function buildScale(key){
+
+  const rootIndex = NOTES.indexOf(key);
+  if(rootIndex === -1) return;
+
+  scaleNotes = MAJOR_SCALE.map(step=>{
+    return NOTES[(rootIndex + step) % 12];
+  });
+
+}
+
+// Subscribe to key changes
+if(window.__KEY_STATE__){
+
+  currentKey = window.__KEY_STATE__.key;
+  buildScale(currentKey);
+
+  window.__KEY_STATE__.subscribe(function(newKey){
+    currentKey = newKey;
+    buildScale(newKey);
+  });
+
+}
+
+// ----- KEYBOARD INPUT -----
+
 document.addEventListener("keydown", function(e){
 
-  // ----- OCTAVE SHIFT LEFT -----
-
+  // OCTAVE LEFT
   if(e.key === "ArrowLeft"){
-
-    e.preventDefault();
 
     if(!window.piano) return;
 
@@ -36,20 +59,17 @@ document.addEventListener("keydown", function(e){
 
     const newScroll = wrapper.scrollLeft - keyWidth * 7;
 
-    // stop if already at edge
     if(newScroll < 0) return;
 
     wrapper.scrollLeft = newScroll;
     currentOctave--;
 
+    e.preventDefault();
     return;
   }
 
-  // ----- OCTAVE SHIFT RIGHT -----
-
+  // OCTAVE RIGHT
   if(e.key === "ArrowRight"){
-
-    e.preventDefault();
 
     if(!window.piano) return;
 
@@ -59,22 +79,21 @@ document.addEventListener("keydown", function(e){
     const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
     const newScroll = wrapper.scrollLeft + keyWidth * 7;
 
-    // stop if already at edge
     if(newScroll > maxScroll) return;
 
     wrapper.scrollLeft = newScroll;
     currentOctave++;
 
+    e.preventDefault();
     return;
   }
 
-  // ----- NOTE PLAY -----
-
-  const pitch = keyMap[e.key];
-  if(!pitch) return;
+  const scaleIndex = keyMap[e.key];
+  if(scaleIndex === undefined) return;
 
   if(pressedKeys.has(e.key)) return;
 
+  const pitch = scaleNotes[scaleIndex];
   const note = pitch + currentOctave;
 
   pressedKeys.add(e.key);
@@ -86,9 +105,10 @@ document.addEventListener("keydown", function(e){
 
 document.addEventListener("keyup", function(e){
 
-  const pitch = keyMap[e.key];
-  if(!pitch) return;
+  const scaleIndex = keyMap[e.key];
+  if(scaleIndex === undefined) return;
 
+  const pitch = scaleNotes[scaleIndex];
   const note = pitch + currentOctave;
 
   pressedKeys.delete(e.key);
@@ -100,8 +120,9 @@ document.addEventListener("keyup", function(e){
 window.addEventListener("blur", function(){
 
   pressedKeys.forEach(key=>{
-    const pitch = keyMap[key];
-    if(pitch){
+    const scaleIndex = keyMap[key];
+    if(scaleIndex !== undefined){
+      const pitch = scaleNotes[scaleIndex];
       const note = pitch + currentOctave;
       releasePianoKey(note);
     }
