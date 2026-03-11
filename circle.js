@@ -282,7 +282,6 @@ if(circleSide === 0 && dialIndex === 0){
   }else if(lastDirection > 0){
     circleSide = -1;  // fourths / flats side
   }
-
 }
 
 visualRotation+=deltaDeg;
