@@ -157,8 +157,8 @@ const scaleIndex = keyMap[e.key];
 
 if(scaleIndex === undefined) return;
 
+buildScale(window.__KEY_STATE__.key);
 const pitch = scale[scaleIndex];
-
 if(!pitch) return;
 
 const note = pitch + currentOctave;
