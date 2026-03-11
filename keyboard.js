@@ -62,15 +62,17 @@ return NOTES[(rootIndex + step) % 12];
 buildScale(currentKey);
 
 // subscribe to key changes
-if(window.__KEY_STATE__){
+if (window.__KEY_STATE__) {
 
-currentKey = normalizeKey(window.__KEY_STATE__.key);
-buildScale(currentKey);
+  // read current key immediately
+  currentKey = normalizeKey(window.__KEY_STATE__.key);
+  buildScale(currentKey);
 
-window.__KEY_STATE__.subscribe((newKey)=>{
-currentKey = normalizeKey(newKey);
-buildScale(currentKey);
-});
+  // then subscribe to future changes
+  window.__KEY_STATE__.subscribe((newKey) => {
+    currentKey = normalizeKey(newKey);
+    buildScale(currentKey);
+  });
 
 }
 
