@@ -49,9 +49,16 @@ function getNoteFromDegree(degree){
 
   const keyIndex = notes.indexOf(currentKey);
 
-  const noteIndex = (keyIndex + degree) % 12;
+  const total = keyIndex + degree;
 
-  return notes[noteIndex];
+  const noteIndex = total % 12;
+
+  const octaveShift = Math.floor(total / 12);
+
+  return {
+    pitch: notes[noteIndex],
+    octaveShift
+  };
 }
 
 // ---------- KEYBOARD INPUT ----------
@@ -109,8 +116,8 @@ document.addEventListener("keydown", function(e){
 
   if(pressedKeys.has(e.key)) return;
 
-  const pitch = getNoteFromDegree(degree);
-  const note = pitch + currentOctave;
+  const result = getNoteFromDegree(degree);
+const note = result.pitch + (currentOctave + result.octaveShift);
 
   pressedKeys.add(e.key);
 
@@ -126,8 +133,8 @@ document.addEventListener("keyup", function(e){
   const degree = degreeMap[e.key];
   if(degree === undefined) return;
 
-  const pitch = getNoteFromDegree(degree);
-  const note = pitch + currentOctave;
+  const result = getNoteFromDegree(degree);
+const note = result.pitch + (currentOctave + result.octaveShift);
 
   pressedKeys.delete(e.key);
 
@@ -142,8 +149,8 @@ window.addEventListener("blur", function(){
   pressedKeys.forEach(key=>{
     const degree = degreeMap[key];
     if(degree !== undefined){
-      const pitch = getNoteFromDegree(degree);
-      const note = pitch + currentOctave;
+      const result = getNoteFromDegree(degree);
+const note = result.pitch + (currentOctave + result.octaveShift);
       releasePianoKey(note);
     }
   });
