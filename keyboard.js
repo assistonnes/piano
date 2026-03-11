@@ -16,7 +16,7 @@ const FLAT_TO_SHARP = {
 "Bb":"A#"
 };
 
-let currentKey = "D";
+let currentKey = "C";
 let scale = [];
 
 let currentOctave = 4;
