@@ -64,14 +64,22 @@ buildScale(currentKey);
 // subscribe to key changes
 if (window.__KEY_STATE__) {
 
-  // read current key immediately
+  // Initial key
   currentKey = normalizeKey(window.__KEY_STATE__.key);
   buildScale(currentKey);
 
-  // then subscribe to future changes
-  window.__KEY_STATE__.subscribe((newKey) => {
-    currentKey = normalizeKey(newKey);
+  console.log("Keyboard initial key:", currentKey);
+
+  // Listen for updates
+  window.__KEY_STATE__.subscribe((newKey, source) => {
+
+    const normalized = normalizeKey(newKey);
+
+    currentKey = normalized;
     buildScale(currentKey);
+
+    console.log("Keyboard updated key:", currentKey, "from", source);
+
   });
 
 }
