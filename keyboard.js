@@ -1,25 +1,51 @@
 // keyboard.js
 (function(){
 
-const keyMap = {
-  "1": "C",
-  "2": "D",
-  "3": "E",
-  "4": "F",
-  "5": "G",
-  "6": "A",
-  "7": "B",
+// scale degrees
+const degreeMap = {
+  "1": 0,
+  "2": 2,
+  "3": 4,
+  "4": 5,
+  "5": 7,
+  "6": 9,
+  "7": 11,
 
-  "!": "C#",
-  "@": "D#",
-  "#": "F#",
-  "$": "G#",
-  "%": "A#"
+  "!": 1,
+  "@": 3,
+  "#": 6,
+  "$": 8,
+  "%": 10
 };
+
+// chromatic scale
+const notes = [
+"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"
+];
+
+// selectable key (default C)
+let currentKey = "E";
 
 let currentOctave = 4;
 
 const pressedKeys = new Set();
+
+// change key externally
+window.setKeyboardKey = function(key){
+  if(notes.includes(key)){
+    currentKey = key;
+  }
+};
+
+// convert degree -> note
+function getNoteFromDegree(degree){
+
+  const keyIndex = notes.indexOf(currentKey);
+
+  const noteIndex = (keyIndex + degree) % 12;
+
+  return notes[noteIndex];
+}
 
 document.addEventListener("keydown", function(e){
 
@@ -36,7 +62,6 @@ document.addEventListener("keydown", function(e){
 
     const newScroll = wrapper.scrollLeft - keyWidth * 7;
 
-    // stop if already at edge
     if(newScroll < 0) return;
 
     wrapper.scrollLeft = newScroll;
@@ -59,7 +84,6 @@ document.addEventListener("keydown", function(e){
     const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
     const newScroll = wrapper.scrollLeft + keyWidth * 7;
 
-    // stop if already at edge
     if(newScroll > maxScroll) return;
 
     wrapper.scrollLeft = newScroll;
@@ -70,11 +94,12 @@ document.addEventListener("keydown", function(e){
 
   // ----- NOTE PLAY -----
 
-  const pitch = keyMap[e.key];
-  if(!pitch) return;
+  const degree = degreeMap[e.key];
+  if(degree === undefined) return;
 
   if(pressedKeys.has(e.key)) return;
 
+  const pitch = getNoteFromDegree(degree);
   const note = pitch + currentOctave;
 
   pressedKeys.add(e.key);
@@ -86,9 +111,10 @@ document.addEventListener("keydown", function(e){
 
 document.addEventListener("keyup", function(e){
 
-  const pitch = keyMap[e.key];
-  if(!pitch) return;
+  const degree = degreeMap[e.key];
+  if(degree === undefined) return;
 
+  const pitch = getNoteFromDegree(degree);
   const note = pitch + currentOctave;
 
   pressedKeys.delete(e.key);
@@ -100,8 +126,9 @@ document.addEventListener("keyup", function(e){
 window.addEventListener("blur", function(){
 
   pressedKeys.forEach(key=>{
-    const pitch = keyMap[key];
-    if(pitch){
+    const degree = degreeMap[key];
+    if(degree !== undefined){
+      const pitch = getNoteFromDegree(degree);
       const note = pitch + currentOctave;
       releasePianoKey(note);
     }
