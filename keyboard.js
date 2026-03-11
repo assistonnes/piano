@@ -29,45 +29,19 @@ let currentOctave = 4;
 
 const pressedKeys = new Set();
 
-// ---------- KEY SELECTOR UI ----------
+// ---------- CONNECT TO KEY STATE ----------
 
-function createKeySelector(){
+if(window.__KEY_STATE__){
 
-  const bar = document.createElement("div");
-  bar.id = "key-selector";
+  // initial key
+  currentKey = window.__KEY_STATE__.key;
 
-  bar.style.display = "flex";
-  bar.style.alignItems = "center";
-  bar.style.gap = "0.5rem";
-  bar.style.padding = "0.3rem 0.6rem";
-  bar.style.fontFamily = "Arial";
-  bar.style.fontSize = "1rem";
-
-  const label = document.createElement("span");
-  label.textContent = "Key:";
-
-  const select = document.createElement("select");
-
-  notes.forEach(n=>{
-    const opt = document.createElement("option");
-    opt.value = n;
-    opt.textContent = n;
-    select.appendChild(opt);
+  // subscribe to changes
+  window.__KEY_STATE__.subscribe(function(newKey){
+    currentKey = newKey;
   });
 
-  select.value = currentKey;
-
-  select.addEventListener("change", ()=>{
-    currentKey = select.value;
-  });
-
-  bar.appendChild(label);
-  bar.appendChild(select);
-
-  document.body.prepend(bar);
 }
-
-createKeySelector();
 
 // ---------- NOTE CALCULATION ----------
 
